@@ -12,6 +12,8 @@ public class udpclient {
 	DatagramPacket clientPacket;
 	Vector<String> memberList=null;
 	HashMap<String,Vector<String>> myMap=null;
+	MapleJuicePayload mypacket=null;
+	
 	
 	private Vector<String> sortMap()
 	{
@@ -61,7 +63,7 @@ public class udpclient {
 		udpClientInst.memberList.add("varun");
 		udpClientInst.memberList.add("prerana");
 		
-		
+		byte[] sendbytes = null;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	    try {
 	    	ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -70,14 +72,15 @@ public class udpclient {
 	    	//TODO - need to decide whether we need to send length also in first packet and then actual packet
 	    	// get the byte array of the object
 	    	//byte[] Buf= baos.toByteArray();
-	    	sendMsg = baos.toString();
+	    	//sendMsg = baos.toString();
+	    	sendbytes = baos.toByteArray();
 	    	System.out.println("the actual string sent is" + sendMsg);
 	    } catch(IOException e) {
 	    	e.printStackTrace();
 	    }
 	    
-		byte[] sendData = sendMsg.getBytes();
-		udpClientInst.clientPacket = new DatagramPacket(sendData, sendData.length, ipAddr, 8000);
+		//byte[] sendData = sendMsg.getBytes();
+		udpClientInst.clientPacket = new DatagramPacket(sendbytes, sendbytes.length, ipAddr, 8000);
 		try {
 			udpClientInst.clientSock = new DatagramSocket();
 		} catch (SocketException e) {
@@ -88,6 +91,37 @@ public class udpclient {
 		} catch (IOException e) {
 			System.out.println(e);
 		}
+		
+		
+		//packet test code
+		MapleAction mypayload = new MapleAction();
+		mypayload.mapleTaskId = 77;
+		mypayload.machineId = 66;
+		byte[] payload = mypayload.getByteArray();
+		MapleJuicePayload mypacket = new MapleJuicePayload(1, 2, payload);
+		
+		try {
+	    	ObjectOutputStream oos = new ObjectOutputStream(baos);
+	    	oos.writeObject(mypacket);
+	    	oos.flush();
+	    	//TODO - need to decide whether we need to send length also in first packet and then actual packet
+	    	// get the byte array of the object
+	    	//byte[] Buf= baos.toByteArray();
+	    	//sendMsg = baos.toString();
+	    	sendbytes = baos.toByteArray();
+	    	System.out.println("the actual string sent is" + sendMsg);
+	    } catch(IOException e) {
+	    	e.printStackTrace();
+	    }
+		udpClientInst.clientPacket = new DatagramPacket(sendbytes, sendbytes.length, ipAddr, 8000);
+		try {
+			udpClientInst.clientSock.send(udpClientInst.clientPacket);
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+		
+		
+		//packet test code ends
 		
 		udpClientInst.myMap = new HashMap<String,Vector<String>>();
 		Vector<String> myList = new Vector<String> ();

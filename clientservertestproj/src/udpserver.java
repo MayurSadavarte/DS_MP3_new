@@ -10,6 +10,7 @@ public class udpserver implements Runnable {
 	public DatagramPacket servPacket;
 	byte[] recvData = new byte[1024];
 	String myName;
+	MapleJuicePayload mypacket=null;
 	
 	@Override
 	public void run() {
@@ -46,17 +47,49 @@ public class udpserver implements Runnable {
 		//recvMsg = udpServInstance.servPacket.toString();
 		//recvMsg = new String(udpServInstance.servPacket.getData());
 		ByteArrayInputStream baos = new ByteArrayInputStream(udpServInstance.recvData);
+		ObjectInputStream oos = null;
+		
 		
 		try {
-			ObjectInputStream oos = new ObjectInputStream(baos);
+			oos = new ObjectInputStream(baos);	
 			//memberList = (Vector<String>)oos.readObject();
 			recvMsg = (String)oos.readObject();
+			oos.close();
 		} catch (IOException e) {
 			System.out.println(e);
 		} catch (ClassNotFoundException e) {
 			System.out.println(e);
+		
 		}
 		System.out.print(recvMsg);
+		
+		try {
+			udpServInstance.udpServSock.receive(udpServInstance.servPacket);
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+		try {
+			oos = new ObjectInputStream(baos);
+			udpServInstance.mypacket = (MapleJuicePayload)oos.readObject();
+		} catch (ClassNotFoundException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(udpServInstance.mypacket.messageType);
+		System.out.println(udpServInstance.mypacket.messageLength);
+		
+		MapleAction mypayload = new MapleAction();
+		mypayload.parseByteArray(udpServInstance.mypacket.payload);
+		
+		
+		System.out.println(udpServInstance.mypacket.payload);
+		System.out.println(mypayload.mapleTaskId);
+		System.out.println(mypayload.machineId);
+	
 	}
 
+	
+	
+	
+	
 }
